@@ -1,15 +1,27 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path, { resolve, join } from 'path'
+import bundledWorker from './plugins/vite-plugin-bundled-worker';
 
 
 const root = join(process.cwd(), './src');
 
 export default defineConfig({
-  publicDir: 'src/public',
-  plugins: [react(),],
+  mode: process.env.MODE,
+  base: '/',
+  root: root,
+  publicDir: "./public",
+  plugins: [
+    react(),
+    bundledWorker(),
+  ],
   server: {
     port: 3000,
+    fs: {
+      strict: false,
+      allow: ['./'],
+    },
+    hmr: false,
   },
   build: {
     outDir: 'dist',

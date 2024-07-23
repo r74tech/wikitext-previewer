@@ -1,0 +1,1 @@
+export const baseUrl: string = import.meta.env.VITE_BACKENDAPI_URL as string || 'http://localhost:8787';
