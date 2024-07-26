@@ -31,10 +31,10 @@ export const fetchPageThunk = createAsyncThunk(
     `page/fetchPageThunk`,
     async ({ shortId }: PageRequest, { dispatch }) => {
         try {
-            const badge = await getPage({ shortId });
+            const page = await getPage({ shortId });
 
-            if (badge) {
-                dispatch(getPageSuccess(badge));
+            if (page) {
+                dispatch(getPageSuccess(page));
             }
         } catch (err) {
             console.error(err);
@@ -58,6 +58,7 @@ const pageSlice = createSlice({
                     revisionCount: payload.data.revisionCount,
                     updateAt: payload.data.updateAt,
                     updateBy: payload.data.updateBy,
+                    isLocked: payload.data.isLocked,
                 };
                 state.page = page;
             }

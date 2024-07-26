@@ -16,6 +16,7 @@ type PostPageParams = {
     title: string;
     source: string;
     createdBy: string;
+    isLocked?: boolean;
 };
 
 type PatchPageParams = {
@@ -23,6 +24,7 @@ type PatchPageParams = {
     title: string;
     source: string;
     createdBy: string;
+    isLocked?: boolean;
 };
 
 export async function getPage({ shortId }: GetPageParams): Promise<PageResponse | null> {
@@ -55,29 +57,3 @@ export async function getRevisionPage(shortId: string, revisionId: number): Prom
     const PageResponse = await axios.get<PageResponse>(url);
     return PageResponse.data;
 }
-
-
-// export const createData = async (title: string, source: string, createdBy: string) => {
-//     const response = await axios.post(`${baseUrl}/data`, { title, source, createdBy });
-//     return response.data;
-// };
-
-// export const updateData = async (shortId: string, title: string, source: string, createdBy: string) => {
-//     const response = await axios.patch(`${baseUrl}/data/${shortId}`, { title, source, createdBy });
-//     return response.data;
-// };
-
-// export const getData = async (shortId: string) => {
-//     const response = await axios.get(`${baseUrl}/data/${shortId}`);
-//     return response.data;
-// };
-
-// export const getHistory = async (shortId: string) => {
-//     const response = await axios.post(`${baseUrl}/data/${shortId}/history`);
-//     return response.data;
-// };
-
-// export const getRevision = async (shortId: string, revisionId: number) => {
-//     const response = await axios.post(`${baseUrl}/data/${shortId}/revision/${revisionId}`);
-//     return response.data;
-// };

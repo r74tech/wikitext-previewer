@@ -24,7 +24,21 @@ export default defineConfig({
     hmr: false,
   },
   build: {
-    outDir: 'dist',
+    target: 'es2020',
+    minify: process.env.MODE === 'development' ? false : 'terser',
+    base: '/',
+    outDir: join(process.cwd(), 'dist'),
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, root, 'index.html'),
+      },
+      external: [
+        /^virtual:.*/,
+      ]
+    },
+    assetsDir: '.',
+    emptyOutDir: true,
+    sourcemap: true,
   },
   resolve: {
     alias: {

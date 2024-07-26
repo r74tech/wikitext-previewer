@@ -1,4 +1,6 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
 import {
     selectPage,
     createPage,
@@ -7,17 +9,37 @@ import {
 } from '@src/features/pages/pagesSlice';
 import { useAppDispatch } from '@src/app/store';
 
-const EditForm: React.FC = () => {
-    const [title, setTitle] = useState('メイン');
+interface EditFormProps {
+    postMessage: (message: any) => void;
+}
+
+const EditForm: React.FC<EditFormProps> = ({ postMessage }) => {
+    const { shortId } = useParams<{ shortId: string }>();
+    const page = useSelector(selectPage);
+    const [title, setTitle] = useState('');
     const [source, setSource] = useState('');
     const [saveBtn, setSaveBtn] = useState<boolean>(false);
-
     const dispatch = useAppDispatch();
+
+    useEffect(() => {
+        if (page) {
+            setTitle(page.title);
+            setSource(page.source);
+        }
+    }, [page]);
+
+    useEffect(() => {
+        if (source) {
+            console.debug('postMessage from EditForm:', source);
+            postMessage({ value: source, type: 'page' });
+        }
+    }, [source, postMessage]);
 
     const onSuccess = () => {
         setSaveBtn(false);
         dispatch(setPageFailure({ errors: [] }));
     };
+
     const onFailure = () => {
         setSaveBtn(false);
     };
@@ -26,21 +48,36 @@ const EditForm: React.FC = () => {
         (e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
             setSaveBtn(true);
-            dispatch(
-                createPage(
-                    title as string,
-                    source as string,
-                    "admin",
-                    {
-                        onSuccess,
-                        onFailure,
-                    },
-                ),
-            );
-        },
-        [dispatch, title, source],
-    );
 
+            if (shortId && page) {
+                dispatch(
+                    updatePage(
+                        shortId,
+                        title,
+                        source,
+                        "anonymous",
+                        {
+                            onSuccess,
+                            onFailure,
+                        },
+                    ),
+                );
+            } else {
+                dispatch(
+                    createPage(
+                        title,
+                        source,
+                        "anonymous",
+                        {
+                            onSuccess,
+                            onFailure,
+                        },
+                    ),
+                );
+            }
+        },
+        [dispatch, shortId, page, title, source],
+    );
 
     return (
         <>

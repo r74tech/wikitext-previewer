@@ -1,51 +1,42 @@
 import { useRef, useEffect, useCallback } from 'react';
-import wikidotmodule from './module';
 
 export const useWorker = () => {
     const workerRef = useRef<Worker | null>(null);
+    const messageHandlerRef = useRef<((event: { html: string, styles: string, type: string }) => void) | null>(null);
 
     useEffect(() => {
         workerRef.current = new Worker("../ftml.web.worker.js", { type: 'module' });
-        return () => workerRef.current?.terminate();
-    }, []);
+        console.debug('Worker initialized');
 
-    const setInnerHtml = useCallback((element: HTMLElement | null, content: string) => {
-        if (element) {
-            element.innerHTML = content;
-        }
-    }, []);
+        workerRef.current.onmessage = (event) => {
+            console.debug('Worker received message:', event.data);
+            const { html, styles, type } = event.data;
+            const cleanedHtml = html.replace(/<wj-body class="wj-body">/g, '').replace(/<\/wj-body>/g, '');
+            const cleanedStyles = styles.map((v: string) => `<style>\n${v.replace(/</g, '&lt;')}\n</style>`).join('\n\n');
 
-    const handleMessage = useCallback((event: MessageEvent) => {
-        const { html, styles, type } = event.data;
-        const contentMapping = {
-            page: 'page-content',
-            side: 'side-bar',
-            top: 'top-bar',
+            if (messageHandlerRef.current) {
+                console.debug('Calling message handler');
+                messageHandlerRef.current({ html: cleanedHtml, styles: cleanedStyles, type });
+            } else {
+                console.debug('No message handler registered');
+            }
         };
-        const targetContent = document.getElementById(contentMapping[type as keyof typeof contentMapping]) || document.getElementById('page-content');
-        const cleanedHtml = html.replace(/<wj-body class="wj-body">/g, '').replace(/<\/wj-body>/g, '');
-        const pageStyles = document.getElementById('page-styles');
-        if (styles.length > 0 && pageStyles) {
-            setInnerHtml(
-                pageStyles,
-                styles.map((v: string) => `<style>\n${v.replace(/</g, '&lt;')}\n</style>`).join('\n\n')
-            );
-        }
 
-        setInnerHtml(targetContent, cleanedHtml);
-        wikidotmodule();
-    }, [setInnerHtml]);
+        return () => {
+            console.debug('Worker terminated');
+            workerRef.current?.terminate();
+        };
+    }, []);
 
-    useEffect(() => {
-        const worker = workerRef.current;
-        if (worker) {
-            worker.onmessage = handleMessage;
-        }
-    }, [handleMessage]);
+    const handleWorkerMessage = useCallback((handler: (event: { html: string, styles: string, type: string }) => void) => {
+        messageHandlerRef.current = handler;
+        console.debug('Message handler set in useWorker:', handler);
+    }, []);
 
     const postMessage = useCallback((message: any) => {
+        console.debug('Posting message to worker:', message);
         workerRef.current?.postMessage(message);
     }, []);
 
-    return { postMessage };
+    return { postMessage, handleWorkerMessage };
 };

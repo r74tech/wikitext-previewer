@@ -5,4 +5,5 @@ export interface Page {
     revisionCount: number;
     updateAt: string;
     updateBy: string;
+    isLocked?: boolean;
 }
