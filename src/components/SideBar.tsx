@@ -231,11 +231,11 @@ const SideBar: React.FC = () => {
             <div className="scpnet-interwiki-wrapper interwiki-stylable">
                 <div className="list-pages-box">
                     <div className="list-pages-item">
-                        <p><iframe className="html-block-iframe scpnet-interwiki-frame" src="//interwiki.scp-jp.org/interwikiFrame.html?lang=jp&community=scp&pagename=scp-173"></iframe></p>
+                        <p><iframe className="html-block-iframe scpnet-interwiki-frame" src="https://interwiki.scp-jp.org/interwikiFrame.html?lang=jp&community=scp&pagename=scp-173" style={{ height: "366.039px"}}></iframe></p>
                     </div>
                 </div>
             </div>
-            <p><iframe src="//interwiki.scp-jp.org/styleFrame.html?priority=0&theme=https://scp-jp.github.io/files/theme/sigma-9/sigma-9.min.css" style={{ display: 'none' }}></iframe></p>
+            <p><iframe src="https://interwiki.scp-jp.org/styleFrame.html?priority=0&theme=https://scp-jp.github.io/files/theme/sigma-9/sigma-9.min.css" style={{ display: 'none' }}></iframe></p>
             <div style={{ clear: 'both', height: '0px', fontSize: '1px' }}></div><a className="close-menu" href="##"><br />
                 <img alt="black.png" className="image" src="https://scp-jp.github.io/files/util/common/media/nav/side/black.png" style={{ zIndex: '-1', opacity: 0.3 }} /><br /></a>
         </>
