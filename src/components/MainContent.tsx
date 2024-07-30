@@ -8,7 +8,7 @@ import { useWorker } from '@src/utils/worker';
 import { getPageData, listPageData } from '@src/utils/indexedDBHelpers';
 import wikidotmodule from '@src/utils/module';
 import SideBar from '@src/components/SideBar';
-import { Page } from '@src/models/page';
+import { Page, IDBPage } from '@src/models/page';
 
 const MainContent: React.FC = () => {
     const contentRef = useRef<HTMLDivElement>(null);
@@ -20,7 +20,7 @@ const MainContent: React.FC = () => {
     const navigate = useNavigate();
     const [selectedPage, setSelectedPage] = useState(page);
     const [isSaving, setIsSaving] = useState(true); // DB saving status (IDB: false, API: true)
-    const [idbPages, setIdbPages] = useState<Page[]>([]);
+    const [idbPages, setIdbPages] = useState<IDBPage[]>([]);
 
     const handleMessage = useCallback((event: { html: string, styles: string, type: string }) => {
         const { html, styles, type } = event;

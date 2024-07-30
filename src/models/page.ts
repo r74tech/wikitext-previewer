@@ -7,3 +7,11 @@ export interface Page {
     updatedBy: string;
     isLocked?: boolean;
 }
+
+export interface IDBPage {
+    shortId: string;
+    title: string;
+    source: string;
+    timestamp: number;
+    url: string;
+}

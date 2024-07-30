@@ -1,13 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import {
-    createPage,
-    updatePage,
-    setPageFailure,
-} from '@src/features/pages/pagesSlice';
+import { createPage, updatePage, setPageFailure } from '@src/features/pages/pagesSlice';
 import { Page } from '@src/models/page';
 import { useAppDispatch } from '@src/app/store';
 import { savePageData } from '@src/utils/indexedDBHelpers';
+import { fetchMe, saveMeThunk, selectUser } from '@src/features/user/userSlice';
+import { generateNanoid } from '@src/utils/nanoid';
+import { useSelector } from 'react-redux';
 
 interface EditFormProps {
     postMessage: (message: any) => void;
@@ -24,6 +23,7 @@ const EditForm: React.FC<EditFormProps> = ({ postMessage, page, isSaving, onSave
     const dispatch = useAppDispatch();
     const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
     const currentShortId = shortId;
+    const me = useSelector(selectUser);
 
     useEffect(() => {
         if (page) {
@@ -38,6 +38,21 @@ const EditForm: React.FC<EditFormProps> = ({ postMessage, page, isSaving, onSave
             postMessage({ value: source, type: 'page' });
         }
     }, [source, typingTimeout, postMessage]);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const user = await dispatch(fetchMe()).unwrap();
+                if (!user) {
+                    const newUser = { username: generateNanoid() };
+                    await dispatch(saveMeThunk(newUser));
+                }
+            } catch (error) {
+                console.error("Error fetching user:", error);
+            }
+        };
+        fetchUser();
+    }, [dispatch]);
 
     const handleInputChange = (setter) => (e) => {
         const value = e.target.value;
@@ -63,9 +78,16 @@ const EditForm: React.FC<EditFormProps> = ({ postMessage, page, isSaving, onSave
     };
 
     const onSaveBtn = useCallback(
-        (e: React.FormEvent<HTMLFormElement>) => {
+        async (e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
             setSaveBtn(true);
+
+            let createdBy = me ? me.username : null;
+            if (!createdBy) {
+                const newUser = { username: generateNanoid() };
+                await dispatch(saveMeThunk(newUser));
+                createdBy = newUser.username;
+            }
 
             if (currentShortId) {
                 dispatch(
@@ -73,7 +95,7 @@ const EditForm: React.FC<EditFormProps> = ({ postMessage, page, isSaving, onSave
                         currentShortId,
                         title,
                         source,
-                        "anonymous",
+                        createdBy,
                         {
                             onSuccess: (savedPage: Page) => onSuccess(savedPage),
                             onFailure,
@@ -85,7 +107,7 @@ const EditForm: React.FC<EditFormProps> = ({ postMessage, page, isSaving, onSave
                     createPage(
                         title,
                         source,
-                        "anonymous",
+                        createdBy,
                         {
                             onSuccess: (savedPage: Page) => onSuccess(savedPage),
                             onFailure,
@@ -94,7 +116,7 @@ const EditForm: React.FC<EditFormProps> = ({ postMessage, page, isSaving, onSave
                 );
             }
         },
-        [dispatch, currentShortId, page, title, source, onSuccess, onFailure],
+        [dispatch, currentShortId, title, source, me, onSuccess, onFailure],
     );
 
     return (
