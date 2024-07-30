@@ -1,25 +1,29 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import {
-    selectPage,
     createPage,
     updatePage,
     setPageFailure,
 } from '@src/features/pages/pagesSlice';
+import { Page } from '@src/models/page';
 import { useAppDispatch } from '@src/app/store';
+import { savePageData } from '@src/utils/indexedDBHelpers';
 
 interface EditFormProps {
     postMessage: (message: any) => void;
+    page: Page | null;
+    isSaving?: boolean; // DB saving status (IDB: false, API: true)
+    onSaveSuccess: (savedPage: Page) => void; // Callback function to handle save success
 }
 
-const EditForm: React.FC<EditFormProps> = ({ postMessage }) => {
+const EditForm: React.FC<EditFormProps> = ({ postMessage, page, isSaving, onSaveSuccess }) => {
     const { shortId } = useParams<{ shortId: string }>();
-    const page = useSelector(selectPage);
-    const [title, setTitle] = useState('');
-    const [source, setSource] = useState('');
+    const [title, setTitle] = useState(page?.title || '');
+    const [source, setSource] = useState(page?.source || '');
     const [saveBtn, setSaveBtn] = useState<boolean>(false);
     const dispatch = useAppDispatch();
+    const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
+    const currentShortId = shortId;
 
     useEffect(() => {
         if (page) {
@@ -29,15 +33,29 @@ const EditForm: React.FC<EditFormProps> = ({ postMessage }) => {
     }, [page]);
 
     useEffect(() => {
-        if (source) {
+        if (source && typingTimeout === null) {
             console.debug('postMessage from EditForm:', source);
             postMessage({ value: source, type: 'page' });
         }
-    }, [source, postMessage]);
+    }, [source, typingTimeout, postMessage]);
 
-    const onSuccess = () => {
+    const handleInputChange = (setter) => (e) => {
+        const value = e.target.value;
+        setter(value);
+        if (typingTimeout) {
+            clearTimeout(typingTimeout);
+        }
+        setTypingTimeout(setTimeout(() => {
+            savePageData({ shortId: currentShortId, title, source });
+            postMessage({ value: source, type: 'page' });
+            setTypingTimeout(null);
+        }, 1000));
+    };
+
+    const onSuccess = (savedPage: Page) => {
         setSaveBtn(false);
         dispatch(setPageFailure({ errors: [] }));
+        onSaveSuccess(savedPage);
     };
 
     const onFailure = () => {
@@ -49,15 +67,15 @@ const EditForm: React.FC<EditFormProps> = ({ postMessage }) => {
             e.preventDefault();
             setSaveBtn(true);
 
-            if (shortId && page) {
+            if (currentShortId) {
                 dispatch(
                     updatePage(
-                        shortId,
+                        currentShortId,
                         title,
                         source,
                         "anonymous",
                         {
-                            onSuccess,
+                            onSuccess: (savedPage: Page) => onSuccess(savedPage),
                             onFailure,
                         },
                     ),
@@ -69,14 +87,14 @@ const EditForm: React.FC<EditFormProps> = ({ postMessage }) => {
                         source,
                         "anonymous",
                         {
-                            onSuccess,
+                            onSuccess: (savedPage: Page) => onSuccess(savedPage),
                             onFailure,
                         },
                     ),
                 );
             }
         },
-        [dispatch, shortId, page, title, source],
+        [dispatch, currentShortId, page, title, source, onSuccess, onFailure],
     );
 
     return (
@@ -98,7 +116,7 @@ const EditForm: React.FC<EditFormProps> = ({ postMessage }) => {
                                         style={{ fontWeight: 'bold', fontSize: '130%' }}
                                         type="text"
                                         value={title}
-                                        onChange={(e) => setTitle(e.target.value)}
+                                        onChange={handleInputChange(setTitle)}
                                     />
                                 </td>
                             </tr>
@@ -112,27 +130,27 @@ const EditForm: React.FC<EditFormProps> = ({ postMessage }) => {
                             rows={20}
                             style={{ width: '95%' }}
                             value={source}
-                            onChange={(e) => setSource(e.target.value)}
+                            onChange={handleInputChange(setSource)}
                         ></textarea>
                     </div>
-                    <table className="edit-page-bottomtable" style={{ padding: '2px 0', border: 'none' }}>
-                        <tbody>
-                            <tr>
-                                {/* <td style={{ border: 'none', padding: '0 5px' }}>
-                                <div className="alert alert-info" id="lock-info">
-                                    
-                                </div>
-                            </td> */}
-                            </tr>
-                        </tbody>
-                    </table>
                     <div className="buttons alignleft">
-                        {/* <input className="btn btn-default" id="edit-diff-button" name="diff" type="button" value="Show Changes" onClick={handleDiff} /> */}
                         <button className="btn btn-primary" id="edit-save-button" name="save" type='submit' value="Save">
                             {saveBtn ? 'Saving...' : 'Save'}
                         </button>
                     </div>
                 </form>
+                {
+                    saveBtn && (
+                        <>
+                            <div style={{ position: 'fixed', width: '100%', height: '100%', top: 0, left: 0, bottom: 0, right: 0, background: 'rgba(0, 0, 0, 0.5)', zIndex: 100 }}>
+                                <div style={{ position: 'absolute', top: '50%', left: 'calc(50% - 100px - 2rem)', background: 'white', border: '1px solid #ddd', zIndex: 101, width: '200px', padding: '0 4rem' }}>
+                                    <p>Saving Page...</p>
+                                    <div className='wait-progress'></div>
+                                </div>
+                            </div>
+                        </>
+                    )
+                }
             </div>
         </>
     );

@@ -1,15 +1,25 @@
-import React, { useEffect, useRef, useCallback } from 'react';
-import EditForm from './EditForm';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import EditForm from './EditForm';
 import { selectPage } from '@src/features/pages/pagesSlice';
 import { useWorker } from '@src/utils/worker';
+import { getPageData } from '@src/utils/indexedDBHelpers';
 import wikidotmodule from '@src/utils/module';
+import SideBar from '@src/components/SideBar';
+import { Page } from '@src/models/page';
 
 const MainContent: React.FC = () => {
     const contentRef = useRef<HTMLDivElement>(null);
     const stylesRef = useRef<HTMLDivElement>(null);
     const { postMessage, handleWorkerMessage } = useWorker();
     const page = useSelector(selectPage);
+    const dispatch = useDispatch();
+    const { shortId } = useParams<{ shortId: string }>();
+    const navigate = useNavigate();
+    const [selectedPage, setSelectedPage] = useState(page);
+    const [isSaving, setIsSaving] = useState(true); // DB saving status (IDB: false, API: true)
 
     const handleMessage = useCallback((event: { html: string, styles: string, type: string }) => {
         const { html, styles, type } = event;
@@ -25,27 +35,56 @@ const MainContent: React.FC = () => {
     }, []);
 
     useEffect(() => {
+        const fetchData = async () => {
+            // if (!shortId) return;
+            const indexedDBData = await getPageData(shortId);
+
+            if (page) {
+                if (indexedDBData && indexedDBData.timestamp > new Date(page.updatedAt).getTime()) {
+                    postMessage({ value: indexedDBData.source, type: 'page' });
+                    setSelectedPage(indexedDBData);
+                    setIsSaving(false); // IDBが優先される場合
+                } else {
+                    postMessage({ value: page.source, type: 'page' });
+                    setSelectedPage(page);
+                    setIsSaving(true); // APIが優先される場合
+                }
+            } else if (indexedDBData) {
+                postMessage({ value: indexedDBData.source, type: 'page' });
+                setSelectedPage(indexedDBData);
+                setIsSaving(false); // IDBが優先される場合
+            }
+        };
+
+        fetchData();
         handleWorkerMessage(handleMessage);
         console.debug('Setting handleWorkerMessage in MainContent');
+    }, [page, postMessage, handleWorkerMessage, handleMessage, shortId]);
 
-        if (page) {
-            console.debug('Sending initial page data to worker:', page.source);
-            postMessage({ value: page.source, type: 'page' });
+    const handleSaveSuccess = (savedPage: Page) => {
+        setSelectedPage(savedPage);
+        if (!shortId) {
+            // Createの場合はリダイレクト
+            navigate(`/share/${savedPage.shortId}`);
         }
-    }, [page, postMessage, handleWorkerMessage, handleMessage]);
+        postMessage({ value: savedPage.source, type: 'page' });
+        setIsSaving(false);
+    };
 
     return (
         <div id="content-wrap">
-            <div id="side-bar"></div>
+            <div id="side-bar">
+                <SideBar />
+            </div>
             <div id="main-content">
-                <div id="page-title">{page?.title}</div>
+                <div id="page-title">{selectedPage?.title}</div>
                 <div id="page-styles" ref={stylesRef} />
                 <div id="page-content" ref={contentRef} />
                 <div id="page-info-break">
                     <div id="page-info"></div>
                 </div>
                 <div id="action-area" style={{ display: 'block' }}>
-                    <EditForm postMessage={postMessage} />
+                    <EditForm postMessage={postMessage} page={selectedPage} isSaving={isSaving} onSaveSuccess={handleSaveSuccess} />
                 </div>
             </div>
         </div>

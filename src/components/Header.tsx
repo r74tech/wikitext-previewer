@@ -12,7 +12,9 @@ const Header: React.FC = () => {
                 </form>
                 <div style={{ width: '1px', height: '1px', position: 'absolute', pointerEvents: 'none', opacity: 0 }}></div>
             </div>
-            <div id="top-bar"></div>
+            <div id="top-bar">
+
+            </div>
             <div id="login-status">
                 <span className="wj-user-info printuser">
                     <a className="wj-user-info-link" href="javascript:;">

@@ -56,8 +56,8 @@ const pageSlice = createSlice({
                     title: payload.data.title,
                     source: payload.data.source,
                     revisionCount: payload.data.revisionCount,
-                    updateAt: payload.data.updateAt,
-                    updateBy: payload.data.updateBy,
+                    updatedAt: payload.data.updatedAt,
+                    updatedBy: payload.data.updatedBy,
                     isLocked: payload.data.isLocked,
                 };
                 state.page = page;
@@ -84,16 +84,18 @@ export const createPage =
         title: string,
         source: string,
         createdBy: string,
-        { onSuccess, onFailure }: { onSuccess: () => void; onFailure: () => void },
+        { onSuccess, onFailure }: { onSuccess: (page: Page) => void; onFailure: () => void },
     ): AppThunk =>
         async () => {
             try {
-                await postPage({
+                const response = await postPage({
                     title,
                     source,
                     createdBy,
                 });
-                onSuccess();
+                if (response) {
+                    onSuccess(response.data);
+                }
             } catch (err: any) {
                 console.error(err);
                 const response = err.response;
@@ -111,17 +113,19 @@ export const updatePage =
         title: string,
         source: string,
         createdBy: string,
-        { onSuccess, onFailure }: { onSuccess: () => void; onFailure: () => void },
+        { onSuccess, onFailure }: { onSuccess: (page: Page) => void; onFailure: () => void },
     ): AppThunk =>
         async () => {
             try {
-                await patchPage({
+                const response = await patchPage({
                     shortId,
                     title,
                     source,
                     createdBy,
                 });
-                onSuccess();
+                if (response) {
+                    onSuccess(response.data);
+                }
             } catch (err: any) {
                 console.error(err);
                 const response = err.response;
@@ -132,6 +136,7 @@ export const updatePage =
                 onFailure();
             }
         };
+
 
 const selectState = (state: RootState) => state.page;
 export const selectPage = createSelector(selectState, (state) => state.page);

@@ -3,7 +3,7 @@ export interface Page {
     title: string;
     source: string;
     revisionCount: number;
-    updateAt: string;
-    updateBy: string;
+    updatedAt: string;
+    updatedBy: string;
     isLocked?: boolean;
 }

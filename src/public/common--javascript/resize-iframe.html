@@ -1,0 +1,39 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title></title>
+    <script type="text/javascript">
+
+        var hash = location.hash.toString();
+        var hash_a1 = hash.split('/');
+        var hash_a2 = hash_a1[0].split('#');
+        var id = hash_a1[1];
+        var height = hash_a2[1];
+
+        parent.parent.document.querySelector('iframe.html-block-iframe[src$="/' + id + '"]').style.height = height + 'px';
+    </script>
+</head>
+
+<body>
+    <!--
+
+This HTML is meant to be iframed in an iframe in order to do cross-domain iframe resizing.
+
+From parent.parent window, jQuery and document objects are grabbed.
+Iframe with class "html-block-iframe" and src ending with <src> is matched
+and resized to height <height> px using jQuery.
+
+<src> and <height> are grabbed from URL of this iframe, format:
+
+http://<domain>/common-javascript/resize-iframe.html#<height>/<src>
+
+<domain> may be at wikidot.com or custom domain.
+It must be the same as the parent.parent's domain.
+
+-->
+
+
+</body>
+
+</html>
