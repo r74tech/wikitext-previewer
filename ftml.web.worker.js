@@ -1,5 +1,5 @@
 // import { init, renderHTML, ready, loading, makeInfo, WikitextSettings } from './lib/ftml-wasm/esm/wj-ftml-wasm.js';
-import { init, renderHTML, ready, loading, makeInfo } from './lib/ftml-wasm/esm/wj-ftml-wasm.js';
+import { init, renderHTML, ready, loading, makeInfo } from './lib/ftml-wasm/esm/wj-ftml-wasm.esm.js';
 
 
 init();
