@@ -9,8 +9,14 @@ on:
 
 env:
     VITE_BACKENDAPI_URL: ${{ secrets.VITE_BACKENDAPI_URL }} 
+
 jobs:
   build:
+    permissions:
+        actions: write
+        checks: write
+        contents: write
+
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
