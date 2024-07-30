@@ -30,3 +30,16 @@ export const getPageData = async (shortId: string = "root") => {
     const db = await initDB();
     return db.get(STORE_NAME, shortId);
 };
+
+export const listPageData = async () => {
+    const db = await initDB();
+    const pages = await db.getAll(STORE_NAME);
+    return pages.map(page => {
+        if (page.shortId === "root") {
+            page.url = "/";
+        } else {
+            page.url = `/share/${page.shortId}`;
+        }
+        return page;
+    });
+};

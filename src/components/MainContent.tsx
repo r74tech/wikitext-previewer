@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import EditForm from './EditForm';
 import { selectPage } from '@src/features/pages/pagesSlice';
 import { useWorker } from '@src/utils/worker';
-import { getPageData } from '@src/utils/indexedDBHelpers';
+import { getPageData, listPageData } from '@src/utils/indexedDBHelpers';
 import wikidotmodule from '@src/utils/module';
 import SideBar from '@src/components/SideBar';
 import { Page } from '@src/models/page';
@@ -20,6 +20,7 @@ const MainContent: React.FC = () => {
     const navigate = useNavigate();
     const [selectedPage, setSelectedPage] = useState(page);
     const [isSaving, setIsSaving] = useState(true); // DB saving status (IDB: false, API: true)
+    const [idbPages, setIdbPages] = useState<Page[]>([]);
 
     const handleMessage = useCallback((event: { html: string, styles: string, type: string }) => {
         const { html, styles, type } = event;
@@ -54,6 +55,9 @@ const MainContent: React.FC = () => {
                 setSelectedPage(indexedDBData);
                 setIsSaving(false); // IDBが優先される場合
             }
+
+            const allPages = await listPageData();
+            setIdbPages(allPages);
         };
 
         fetchData();
@@ -85,6 +89,16 @@ const MainContent: React.FC = () => {
                 </div>
                 <div id="action-area" style={{ display: 'block' }}>
                     <EditForm postMessage={postMessage} page={selectedPage} isSaving={isSaving} onSaveSuccess={handleSaveSuccess} />
+                    <div className="idb-pages-list" style={{ marginTop: '2em' }}>
+                        <h2>Saved Pages</h2>
+                        <ul>
+                            {idbPages.map((idbPage) => (
+                                <li key={idbPage.shortId}>
+                                    <a href={idbPage.url}>{idbPage.title}</a> - Last updated: {new Date(idbPage.timestamp).toLocaleString()}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
