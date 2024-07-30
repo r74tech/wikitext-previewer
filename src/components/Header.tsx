@@ -1,6 +1,31 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchMe, saveMeThunk, selectUser } from '@src/features/user/userSlice';
+import { generateNanoid } from '@src/utils/nanoid';
 
 const Header: React.FC = () => {
+    const dispatch = useDispatch();
+    const user = useSelector(selectUser);
+    const [username, setUsername] = useState("Default");
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const user = await dispatch(fetchMe()).unwrap();
+                if (!user) {
+                    const newUser = { username: generateNanoid() };
+                    await dispatch(saveMeThunk(newUser));
+                    setUsername(newUser.username);
+                } else {
+                    setUsername(user.username);
+                }
+            } catch (error) {
+                console.error("Error fetching user:", error);
+            }
+        };
+        fetchUser();
+    }, [dispatch]);
+
     return (
         <div id="header">
             <h1><a href="/" className="active"><span>Wikitext Previewer</span></a></h1>
@@ -12,9 +37,7 @@ const Header: React.FC = () => {
                 </form>
                 <div style={{ width: '1px', height: '1px', position: 'absolute', pointerEvents: 'none', opacity: 0 }}></div>
             </div>
-            <div id="top-bar">
-
-            </div>
+            <div id="top-bar"></div>
             <div id="login-status">
                 <span className="wj-user-info printuser">
                     <a className="wj-user-info-link" href="javascript:;">
@@ -23,8 +46,8 @@ const Header: React.FC = () => {
                                 <use href="/files--static/media/ui.svg#wj-karma"></use>
                             </svg>
                         </span>
-                        <img className="wj-user-info-avatar small" src="/files--static/media/default-avatar.png" alt="Default" />
-                    </a>Default</span>
+                        <img className="wj-user-info-avatar small" src="/files--static/media/default-avatar.png" alt={username} />
+                    </a>{username}</span>
                 | <a id="my-account" href="javascript:;">My accounts</a> <a id="account-topbutton" href="javascript:;">▼</a>
                 <div id="account-options" style={{ display: 'none' }}>
                     <ul>
