@@ -33,7 +33,7 @@
     "react-router-dom": "^6.25.1",
     "react-toastify": "^10.0.5",
     "shortid": "^2.2.16",
-    "svelte": "^3.59.2",
+    "svelte": "^4.2.19",
     "svelte-store": "^0.0.2",
     "terser": "^5.31.3",
     "throttle-typescript": "^1.1.0",
