@@ -18,7 +18,7 @@
     "codemirror": "^6.0.1",
     "comlink": "^4.4.2",
     "crypto-js": "^4.2.0",
-    "esbuild": "^0.17.19",
+    "esbuild": "^0.25.0",
     "eslint": "^8.57.1",
     "hfmath": "^0.0.2",
     "idb": "^8.0.0",
